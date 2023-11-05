@@ -34,6 +34,14 @@ async function run() {
             const result = await jobsDatabase.find().toArray();
             res.send(result);
         });
+        app.get("/jobs/:category", async (req, res) => {
+            const category = req.params?.category;
+            console.log(category);
+            const result = await jobsDatabase
+                .find({ category: category })
+                .toArray();
+            res.send(result);
+        });
     } finally {
         // Ensures that the client will close when you finish/error
     }
