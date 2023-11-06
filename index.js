@@ -7,7 +7,7 @@ require("dotenv").config();
 app.use(express.json());
 app.use(cors());
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@cluster0.iii2gbo.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -29,18 +29,55 @@ async function run() {
             "Pinged your deployment. You successfully connected to MongoDB!"
         );
         const jobsDatabase = client.db("jobsDatabase").collection("jobs");
+        const bitsDatabase = client.db("jobsDatabase").collection("bits");
 
         app.get("/jobs", async (req, res) => {
-            const result = await jobsDatabase.find().toArray();
-            res.send(result);
+            try {
+                const result = await jobsDatabase.find().toArray();
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+        app.get("/bits", async (req, res) => {
+            try {
+                const result = await bitsDatabase.find().toArray();
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+        app.post("/bits", async (req, res) => {
+            try {
+                const bit = req.body;
+                const result = await bitsDatabase.insertOne(bit);
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
         });
         app.get("/jobs/:category", async (req, res) => {
-            const category = req.params?.category;
-            console.log(category);
-            const result = await jobsDatabase
-                .find({ category: category })
-                .toArray();
-            res.send(result);
+            try {
+                const category = req.params?.category;
+                console.log(category);
+                const result = await jobsDatabase
+                    .find({ category: category })
+                    .toArray();
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+        app.get("/job/:id", async (req, res) => {
+            try {
+                const id = req.params?.id;
+                const result = await jobsDatabase
+                    .find({ _id: new ObjectId(id) })
+                    .toArray();
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
         });
     } finally {
         // Ensures that the client will close when you finish/error
