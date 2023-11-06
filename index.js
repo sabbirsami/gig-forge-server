@@ -47,6 +47,18 @@ async function run() {
                 console.log(error);
             }
         });
+        app.get("/bits/:email", async (req, res) => {
+            try {
+                const userEmail = req.params;
+                console.log(userEmail.email);
+                const result = await bitsDatabase
+                    .find({ userEmail: userEmail.email })
+                    .toArray();
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
         app.post("/bits", async (req, res) => {
             try {
                 const bit = req.body;
@@ -59,7 +71,6 @@ async function run() {
         app.get("/jobs/:category", async (req, res) => {
             try {
                 const category = req.params?.category;
-                console.log(category);
                 const result = await jobsDatabase
                     .find({ category: category })
                     .toArray();
