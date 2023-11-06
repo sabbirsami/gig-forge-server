@@ -44,6 +44,29 @@ async function run() {
                 console.log(error);
             }
         });
+        app.get("/jobs/:email", async (req, res) => {
+            try {
+                const email = req.params.email;
+                console.log(email);
+                const result = await jobsDatabase
+                    .find({ employer_email: email })
+                    .toArray();
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+        app.delete("/jobs/:email/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+                const result = await jobsDatabase.deleteOne({
+                    _id: new ObjectId(id),
+                });
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
         app.post("/jobs", async (req, res) => {
             try {
                 const job = req.body;
@@ -64,7 +87,6 @@ async function run() {
         app.get("/bits/:email", async (req, res) => {
             try {
                 const userEmail = req.params;
-                console.log(userEmail.email);
                 const result = await bitsDatabase
                     .find({ userEmail: userEmail.email })
                     .toArray();
@@ -76,7 +98,6 @@ async function run() {
         app.get("/bits/:email/:id", async (req, res) => {
             try {
                 const id = req.params.id;
-                console.log(id);
                 const result = await bitsDatabase
                     .find({ _id: new ObjectId(id) })
                     .toArray();
@@ -89,7 +110,6 @@ async function run() {
             try {
                 const id = req.params.id;
                 const status = req.body;
-                console.log(id, status);
                 const result = await bitsDatabase.updateOne(
                     { _id: new ObjectId(id) },
                     {
