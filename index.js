@@ -67,6 +67,21 @@ async function run() {
                 console.log(error);
             }
         });
+        app.put("/jobs/:email/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+                const job = req.body;
+                const result = await jobsDatabase.updateOne(
+                    {
+                        _id: new ObjectId(id),
+                    },
+                    { $set: job }
+                );
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
         app.post("/jobs", async (req, res) => {
             try {
                 const job = req.body;
