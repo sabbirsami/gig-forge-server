@@ -59,6 +59,18 @@ async function run() {
                 console.log(error);
             }
         });
+        app.get("/bits/:email/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+                console.log(id);
+                const result = await bitsDatabase
+                    .find({ _id: new ObjectId(id) })
+                    .toArray();
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
         app.post("/bits", async (req, res) => {
             try {
                 const bit = req.body;
