@@ -4,8 +4,13 @@ const port = process.env.PORT || 5000;
 const app = express();
 require("dotenv").config();
 
+const corsConfig = {
+    origin: ["http://localhost:5173"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+};
 app.use(express.json());
-app.use(cors());
+app.use(cors(corsConfig));
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@cluster0.iii2gbo.mongodb.net/?retryWrites=true&w=majority`;
@@ -39,6 +44,15 @@ async function run() {
                 console.log(error);
             }
         });
+        app.post("/jobs", async (req, res) => {
+            try {
+                const job = req.body;
+                const result = await jobsDatabase.insertOne(job);
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
         app.get("/bits", async (req, res) => {
             try {
                 const result = await bitsDatabase.find().toArray();
@@ -66,6 +80,22 @@ async function run() {
                 const result = await bitsDatabase
                     .find({ _id: new ObjectId(id) })
                     .toArray();
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+        app.patch("/bits/:email/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+                const status = req.body;
+                console.log(id, status);
+                const result = await bitsDatabase.updateOne(
+                    { _id: new ObjectId(id) },
+                    {
+                        $set: status,
+                    }
+                );
                 res.send(result);
             } catch (error) {
                 console.log(error);
