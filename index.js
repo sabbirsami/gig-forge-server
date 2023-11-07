@@ -44,10 +44,9 @@ async function run() {
                 console.log(error);
             }
         });
-        app.get("/jobs/:email", async (req, res) => {
+        app.get("/posted-jobs/:email", async (req, res) => {
             try {
                 const email = req.params.email;
-                console.log(email);
                 const result = await jobsDatabase
                     .find({ employer_email: email })
                     .toArray();
@@ -91,6 +90,7 @@ async function run() {
                 console.log(error);
             }
         });
+
         app.get("/bits", async (req, res) => {
             try {
                 const result = await bitsDatabase.find().toArray();
@@ -104,7 +104,35 @@ async function run() {
                 const userEmail = req.params;
                 const result = await bitsDatabase
                     .find({ userEmail: userEmail.email })
+                    .sort({ status: 1 })
                     .toArray();
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+        app.get("/bits-requests/:email", async (req, res) => {
+            try {
+                const userEmail = req.params;
+                const result = await bitsDatabase
+                    .find({ employer_email: userEmail.email })
+                    .toArray();
+                res.send(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+        app.patch("/bits-request/:email/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+                const status = req.body;
+                const result = await bitsDatabase.updateOne(
+                    { _id: new ObjectId(id) },
+                    {
+                        $set: status,
+                    }
+                );
+
                 res.send(result);
             } catch (error) {
                 console.log(error);
@@ -148,6 +176,7 @@ async function run() {
         app.get("/jobs/:category", async (req, res) => {
             try {
                 const category = req.params?.category;
+                console.log(category);
                 const result = await jobsDatabase
                     .find({ category: category })
                     .toArray();
