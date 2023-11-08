@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 const app = express();
 require("dotenv").config();
@@ -35,6 +36,24 @@ async function run() {
         );
         const jobsDatabase = client.db("jobsDatabase").collection("jobs");
         const bitsDatabase = client.db("jobsDatabase").collection("bits");
+
+        app.post("/jwt", async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.TOKEN_SECRET, {
+                expiresIn: "2h",
+            });
+            res.cookie("token", token, {
+                httpOnly: true,
+                sameSite: "none",
+                secure: true,
+            }).send({ success: true });
+        });
+        app.post("/logout", async (req, res) => {
+            const user = req.body;
+            res.clearCookie("token", {
+                maxAge: 0,
+            }).send({ success: true });
+        });
 
         app.get("/jobs", async (req, res) => {
             try {
@@ -152,11 +171,13 @@ async function run() {
         app.patch("/bits/:email/:id", async (req, res) => {
             try {
                 const id = req.params.id;
-                const status = req.body;
+                const status = req.body.updatedData.status;
+                const progress = req.body.updatedData.progress;
+                console.log(status, progress);
                 const result = await bitsDatabase.updateOne(
                     { _id: new ObjectId(id) },
                     {
-                        $set: status,
+                        $set: { status, progress },
                     }
                 );
                 res.send(result);
