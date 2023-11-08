@@ -1,17 +1,19 @@
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+var cookieParser = require("cookie-parser");
 const port = process.env.PORT || 5000;
 const app = express();
 require("dotenv").config();
 
 const corsConfig = {
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173", "https://sami-gig-forge.web.app/"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 };
 app.use(express.json());
 app.use(cors(corsConfig));
+app.use(cookieParser());
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@cluster0.iii2gbo.mongodb.net/?retryWrites=true&w=majority`;
@@ -24,6 +26,22 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     },
 });
+
+const verifyToken = (req, res, next) => {
+    const token = req?.cookies?.token;
+    console.log("token m", token);
+    if (!token) {
+        res.status(401).send({ message: "unauthorized access" });
+    }
+    jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ message: "unauthorized access" });
+        } else {
+            req.user = decoded;
+            next();
+        }
+    });
+};
 
 async function run() {
     try {
@@ -63,9 +81,14 @@ async function run() {
                 console.log(error);
             }
         });
-        app.get("/posted-jobs/:email", async (req, res) => {
+        app.get("/posted-jobs/:email", verifyToken, async (req, res) => {
             try {
                 const email = req.params.email;
+                if (email !== req.user.email) {
+                    return res
+                        .status(403)
+                        .send({ message: "forbidden access" });
+                }
                 const result = await jobsDatabase
                     .find({ employer_email: email })
                     .toArray();
@@ -110,7 +133,7 @@ async function run() {
             }
         });
 
-        app.get("/bits", async (req, res) => {
+        app.get("/bits", verifyToken, async (req, res) => {
             try {
                 const result = await bitsDatabase.find().toArray();
                 res.send(result);
@@ -118,9 +141,14 @@ async function run() {
                 console.log(error);
             }
         });
-        app.get("/bits/:email", async (req, res) => {
+        app.get("/bits/:email", verifyToken, async (req, res) => {
             try {
                 const userEmail = req.params;
+                if (userEmail.email !== req.user.email) {
+                    return res
+                        .status(403)
+                        .send({ message: "forbidden access" });
+                }
                 const result = await bitsDatabase
                     .find({ userEmail: userEmail.email })
                     .sort({ status: 1 })
@@ -130,9 +158,14 @@ async function run() {
                 console.log(error);
             }
         });
-        app.get("/bits-requests/:email", async (req, res) => {
+        app.get("/bits-requests/:email", verifyToken, async (req, res) => {
             try {
                 const userEmail = req.params;
+                if (userEmail.email !== req.user.email) {
+                    return res
+                        .status(403)
+                        .send({ message: "forbidden access" });
+                }
                 const result = await bitsDatabase
                     .find({ employer_email: userEmail.email })
                     .toArray();
@@ -157,7 +190,7 @@ async function run() {
                 console.log(error);
             }
         });
-        app.get("/bits/:email/:id", async (req, res) => {
+        app.get("/bits/:email/:id", verifyToken, async (req, res) => {
             try {
                 const id = req.params.id;
                 const result = await bitsDatabase
@@ -206,7 +239,7 @@ async function run() {
                 console.log(error);
             }
         });
-        app.get("/job/:id", async (req, res) => {
+        app.get("/job/:id", verifyToken, async (req, res) => {
             try {
                 const id = req.params?.id;
                 const result = await jobsDatabase
