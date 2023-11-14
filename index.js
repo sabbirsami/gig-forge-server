@@ -60,6 +60,7 @@ run().catch(console.dir);
 const jobsDatabase = client.db("jobsDatabase").collection("jobs");
 const bitsDatabase = client.db("jobsDatabase").collection("bits");
 
+//sign token
 app.post("/jwt", async (req, res) => {
     const user = req.body;
     const token = jwt.sign(user, process.env.TOKEN_SECRET, {
@@ -71,6 +72,7 @@ app.post("/jwt", async (req, res) => {
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
     }).send({ success: true });
 });
+// remove token from cookie
 app.post("/logout", async (req, res) => {
     const user = req.body;
     console.log("logging out", user);
@@ -81,6 +83,7 @@ app.post("/logout", async (req, res) => {
     }).send({ success: true });
 });
 
+// get all posted jobs
 app.get("/jobs", async (req, res) => {
     try {
         const result = await jobsDatabase.find().toArray();
@@ -89,6 +92,29 @@ app.get("/jobs", async (req, res) => {
         console.log(error);
     }
 });
+// add job api
+app.post("/jobs", async (req, res) => {
+    try {
+        const job = req.body;
+        const result = await jobsDatabase.insertOne(job);
+        res.send(result);
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+// get a single jobs
+app.get("/job/:id", async (req, res) => {
+    try {
+        const id = req.params?.id;
+        console.log(id);
+        const result = await jobsDatabase.find({ _id: id }).toArray();
+        res.send(result);
+    } catch (error) {
+        console.log(error);
+    }
+});
+// user posted job
 app.get("/posted-jobs/:email", verifyToken, async (req, res) => {
     try {
         const email = req.params.email;
@@ -103,6 +129,7 @@ app.get("/posted-jobs/:email", verifyToken, async (req, res) => {
         console.log(error);
     }
 });
+// user posted job delete api
 app.delete("/jobs/:email/:id", async (req, res) => {
     try {
         const id = req.params.id;
@@ -114,17 +141,8 @@ app.delete("/jobs/:email/:id", async (req, res) => {
         console.log(error);
     }
 });
-app.delete("/jobs/manage/:id", async (req, res) => {
-    try {
-        const id = req.params.id;
-        const result = await jobsDatabase.deleteOne({
-            _id: new ObjectId(id),
-        });
-        res.send(result);
-    } catch (error) {
-        console.log(error);
-    }
-});
+
+// user posted job update api
 app.put("/jobs/:email/:id", async (req, res) => {
     try {
         const id = req.params.id;
@@ -135,15 +153,6 @@ app.put("/jobs/:email/:id", async (req, res) => {
             },
             { $set: job }
         );
-        res.send(result);
-    } catch (error) {
-        console.log(error);
-    }
-});
-app.post("/jobs", async (req, res) => {
-    try {
-        const job = req.body;
-        const result = await jobsDatabase.insertOne(job);
         res.send(result);
     } catch (error) {
         console.log(error);
@@ -252,12 +261,24 @@ app.get("/jobs/:category", async (req, res) => {
         console.log(error);
     }
 });
-app.get("/job/:id", async (req, res) => {
+// dashboard
+app.delete("/jobs/manage/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const result = await jobsDatabase.deleteOne({
+            _id: id,
+        });
+        res.send(result);
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+app.get("/jobs/manage/:id", async (req, res) => {
     try {
         const id = req.params?.id;
-        const result = await jobsDatabase
-            .find({ _id: new ObjectId(id) })
-            .toArray();
+        console.log(id);
+        const result = await jobsDatabase.find({ _id: id }).toArray();
         res.send(result);
     } catch (error) {
         console.log(error);
