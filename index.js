@@ -114,6 +114,17 @@ app.delete("/jobs/:email/:id", async (req, res) => {
         console.log(error);
     }
 });
+app.delete("/jobs/manage/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const result = await jobsDatabase.deleteOne({
+            _id: new ObjectId(id),
+        });
+        res.send(result);
+    } catch (error) {
+        console.log(error);
+    }
+});
 app.put("/jobs/:email/:id", async (req, res) => {
     try {
         const id = req.params.id;
