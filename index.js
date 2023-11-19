@@ -108,7 +108,9 @@ app.get("/job/:id", async (req, res) => {
     try {
         const id = req.params?.id;
         console.log(id);
-        const result = await jobsDatabase.find({ _id: id }).toArray();
+        const result = await jobsDatabase
+            .find({ _id: new ObjectId(id) })
+            .toArray();
         res.send(result);
     } catch (error) {
         console.log(error);
@@ -262,27 +264,28 @@ app.get("/jobs/:category", async (req, res) => {
     }
 });
 // dashboard
-app.delete("/jobs/manage/:id", async (req, res) => {
+app.delete("/manage/jobs/:id", async (req, res) => {
     try {
-        const id = req.params.id;
-        const result = await jobsDatabase.deleteOne({
-            _id: id,
-        });
+        const id = req.params?.id;
+        const result = await jobsDatabase.deleteOne({ _id: new ObjectId(id) });
+        res.send(result);
+    } catch (error) {
+        console.log(error);
+    }
+});
+app.delete("/manage/bids/:id", async (req, res) => {
+    try {
+        const id = req.params?.id;
+        const result = await bitsDatabase.deleteOne({ _id: new ObjectId(id) });
         res.send(result);
     } catch (error) {
         console.log(error);
     }
 });
 
-app.get("/jobs/manage/:id", async (req, res) => {
-    try {
-        const id = req.params?.id;
-        console.log(id);
-        const result = await jobsDatabase.find({ _id: id }).toArray();
-        res.send(result);
-    } catch (error) {
-        console.log(error);
-    }
+app.post("/all-users", async (req, res) => {
+    const newUser = req.body;
+    console.log(`consol ${newUser}`);
 });
 
 app.get("/", (req, res) => {
